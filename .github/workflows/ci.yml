@@ -70,7 +70,7 @@ jobs:
 
       - name: Setup Redis
         if: ${{ matrix.os }} == 'ubuntu-latest'
-        run:
+        run: |
           sudo apt-get install -y redis-server
           sudo redis-server /etc/redis/redis.conf
 
