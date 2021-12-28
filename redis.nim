@@ -851,6 +851,11 @@ proc srandmember*(r: var Redis, key: string): string =
   r.sendCommand("SRANDMEMBER", key)
   result = r.readBulkString()
 
+proc srandmember*(r: var Redis, key: string; count: int): seq[string] =
+  ## Get random members from a set
+  r.sendCommand("SRANDMEMBER", key, @[$count])
+  result = r.readArray()
+
 proc srem*(r: var Redis, key: string, member: string): BiggestInt =
   ## Remove a member from a set
   r.sendCommand("SREM", key, @[member])
