@@ -1,10 +1,11 @@
+import std/math
 import std/net
-import std/strutils
-import std/parseutils
 import std/options
-import std/times
-import std/tables
+import std/parseutils
 import std/sequtils
+import std/strutils
+import std/tables
+import std/times
 
 const
   redisNil* = "\0\0"
@@ -874,17 +875,56 @@ proc sunionstore*(r: var Redis, destination: string,
 
 # Sorted sets
 
-proc zadd*(r: var Redis, key: string, score: float, member: string): BiggestInt =
-  ## Add a member to a sorted set, or update its score if it already exists
-  r.sendCommand("ZADD", key, @[$score, member])
+proc zpopmin*(r: var Redis; key: string; count=1): seq[string] =
+  ## Remove `count` lowest-scored members of a sorted set `key`.
+  ## Returns the removed members.
+  r.sendCommand("ZPOPMIN", key, $count)
+  result = r.readArray()
+
+proc zpopmax*(r: var Redis; key: string; count=1): seq[string] =
+  ## Remove `count` highest-scored members of a sorted set `key`.
+  ## Returns the removed members.
+  r.sendCommand("ZPOPMAX", key, $count)
+  result = r.readArray()
+
+proc zrandmember*(r: var Redis; key: string): string =
+  ## Retrieve a single random member of a sorted set `key`.
+  r.sendCommand("ZRANDMEMBER", key)
+  result = r.readBulkString(allowMBNil=false)
+
+proc zrandmembers*(r: var Redis; key: string; count=1): seq[string] =
+  ## Retrieve `count` distinct random members of a sorted set `key`.
+  ## Use a negative `count` to relax the distinct requirement.
+  r.sendCommand("ZRANDMEMBER", key, $count)
+  result = r.readArray()
+
+proc zadd*(r: var Redis; key: string; score: float; member: string;
+           nan = "-inf"): BiggestInt =
+  ## Add a member to a sorted set, or update its score if it already exists.
+  ## Provide `nan` as a substitute value for NaN floats.
+  ## Returns the number of added members.
+  let score =
+    if score.isNaN:
+      nan
+    else:
+      $score
+  r.sendCommand("ZADD", key, @[score, member])
   result = r.readInteger()
 
-proc zadd*(r: var Redis, key: string,
-           members: seq[(string, float)]): BiggestInt =
-  ## Add members to a sorted set, or update its score if it already exists
-  var values: seq[string]
+proc zadd*(r: var Redis; key: string;
+           members: seq[(string, float)]; nan = "-inf"): BiggestInt =
+  ## Add members to a sorted set, or update their scores if they already exist.
+  ## Provide `nan` as a substitute value for NaN floats.
+  ## Returns the number of added members.
+  if members.len == 0:
+    return 0
+  var values = newSeqOfCap[string](members.len)
   for member, score in members.items:
-    values.add $score
+    values.add:
+      if score.isNaN:
+        nan
+      else:
+        $score
     values.add member
   r.sendCommand("ZADD", key, values)
   result = r.readInteger()
