@@ -356,7 +356,7 @@ proc del*(r: var Redis, key: string): BiggestInt =
   r.sendCommand("DEL", [key])
   result = r.readInteger()
 
-proc del*(r: var Redis, keys: seq[string]): BiggestInt =
+proc del*(r: var Redis, keys: openArray[string]): BiggestInt =
   ## Delete keys
   r.sendCommand("DEL", keys)
   result = r.readInteger()
@@ -464,7 +464,7 @@ proc decrBy*(r: var Redis, key: string, decrement: int): BiggestInt =
   r.sendCommand("DECRBY", key, [$decrement])
   result = r.readInteger()
 
-proc mget*(r: var Redis, keys: seq[string]): seq[string] =
+proc mget*(r: var Redis, keys: openArray[string]): seq[string] =
   ## Get the values of all given keys
   r.sendCommand("MGET", keys)
   result = r.readArray()
@@ -480,12 +480,12 @@ proc getBit*(r: var Redis, key: string, offset: int): BiggestInt =
   r.sendCommand("GETBIT", key, [$offset])
   result = r.readInteger()
 
-proc bitCount*(r: var Redis, key: string, limits: seq[string]): BiggestInt =
+proc bitCount*(r: var Redis, key: string, limits: openArray[string]): BiggestInt =
   ## Returns the number of set bits, optionally within limits
   r.sendCommand("BITCOUNT", key, limits)
   result = r.readInteger()
 
-proc bitPos*(r: var Redis, key: string, bit: int, limits: seq[string]): BiggestInt =
+proc bitPos*(r: var Redis, key: string, bit: int, limits: openArray[string]): BiggestInt =
   ## Returns position of the first occurence of bit within limits
   var parameters: seq[string]
   newSeq(parameters, len(limits) + 1)
@@ -518,7 +518,7 @@ proc incrBy*(r: var Redis, key: string, increment: int): BiggestInt =
 
 #TODO incrbyfloat
 
-proc msetk*(r: var Redis, keyValues: seq[(string, string)]) =
+proc msetk*(r: var Redis, keyValues: openArray[(string, string)]) =
   ## Set mupltiple keys to multiple values
   var args: seq[string] = @[]
   for key, value in keyValues.items:
@@ -575,7 +575,7 @@ proc hDel*(r: var Redis, key: string, field: string): bool =
   r.sendCommand("HDEL", key, [field])
   result = (r.readInteger()) == 1
 
-proc hDel*(r: var Redis, key: string, fields: seq[string]): BiggestInt =
+proc hDel*(r: var Redis, key: string, fields: openArray[string]): BiggestInt =
   ## Delete hash fields at `key`. Returns number of fields removed.
   r.sendCommand("HDEL", key, fields)
   result = r.readInteger()
@@ -610,12 +610,12 @@ proc hLen*(r: var Redis, key: string): BiggestInt =
   r.sendCommand("HLEN", key)
   result = r.readInteger()
 
-proc hMGet*(r: var Redis, key: string, fields: seq[string]): seq[string] =
+proc hMGet*(r: var Redis, key: string, fields: openArray[string]): seq[string] =
   ## Get the values of all the given hash fields
   r.sendCommand("HMGET", key, fields)
   result = r.readArray()
 
-proc hMSet*(r: var Redis, key: string, fieldValues: seq[(string, string)]) =
+proc hMSet*(r: var Redis, key: string, fieldValues: openArray[(string, string)]) =
   ## Set multiple hash fields to multiple values
   var args = @[key]
   for field, value in fieldValues.items:
@@ -641,16 +641,20 @@ proc hVals*(r: var Redis, key: string): seq[string] =
 
 # Lists
 
-proc bLPop*(r: var Redis, keys: seq[string], timeout: int): seq[string] =
+proc bLPop*(r: var Redis, keys: openArray[string], timeout: int): seq[string] =
   ## Remove and get the *first* element in a list, or block until
   ## one is available
-  r.sendCommand("BLPOP", keys & $timeout)
+  var args = @keys
+  args.add $timeout
+  r.sendCommand("BLPOP", args)
   result = r.readArray()
 
-proc bRPop*(r: var Redis, keys: seq[string], timeout: int): seq[string] =
+proc bRPop*(r: var Redis, keys: openArray[string], timeout: int): seq[string] =
   ## Remove and get the *last* element in a list, or block until one
   ## is available.
-  r.sendCommand("BRPOP", keys & $timeout)
+  var args = @keys
+  args.add $timeout
+  r.sendCommand("BRPOP", args)
   result = r.readArray()
 
 proc bRPopLPush*(r: var Redis, source, destination: string,
@@ -695,7 +699,7 @@ proc lPush*(r: var Redis, key, value: string, create = true): BiggestInt =
 
   result = r.readInteger()
 
-proc lPush*(r: var Redis, key: string, values: seq[string], create = true): BiggestInt =
+proc lPush*(r: var Redis, key: string, values: openArray[string], create = true): BiggestInt =
   ## Prepend a value to a list. Returns the length of the list after the push.
   ## The ``create`` param specifies whether a list should be created if it
   ## doesn't exist at ``key``. More specifically if ``create`` is true, `LPUSH`
@@ -752,8 +756,8 @@ proc rPush*(r: var Redis, key, value: string,
 
   result = r.readInteger()
 
-proc rPush*(r: var Redis, key: string, values: seq[string],
-             create = true): BiggestInt =
+proc rPush*(r: var Redis, key: string, values: openArray[string],
+            create = true): BiggestInt =
   ## Append a value to a list. Returns the length of the list after the push.
   ## The ``create`` param specifies whether a list should be created if it
   ## doesn't exist at ``key``. More specifically if ``create`` is true, `RPUSH`
@@ -766,7 +770,7 @@ proc rPush*(r: var Redis, key: string, values: seq[string],
   result = r.readInteger()
 
 proc sort*(r: var Redis, key: string, by="", offset = -1, count = -1,
-           desc=false, alpha=false, get: seq[string] = @[]): seq[string] =
+           desc=false, alpha=false, get: openArray[string] = @[]): seq[string] =
   var args: seq[string]
   if by.len > 0:
     args.add("BY")
@@ -794,7 +798,7 @@ proc sadd*(r: var Redis, key: string, member: string): BiggestInt =
   r.sendCommand("SADD", key, [member])
   result = r.readInteger()
 
-proc sadd*(r: var Redis, key: string, members: seq[string]): BiggestInt =
+proc sadd*(r: var Redis, key: string, members: openArray[string]): BiggestInt =
   ## Add a member to a set
   r.sendCommand("SADD", key, members)
   result = r.readInteger()
@@ -804,24 +808,24 @@ proc scard*(r: var Redis, key: string): BiggestInt =
   r.sendCommand("SCARD", key)
   result = r.readInteger()
 
-proc sdiff*(r: var Redis, keys: seq[string]): seq[string] =
+proc sdiff*(r: var Redis, keys: openArray[string]): seq[string] =
   ## Subtract multiple sets
   r.sendCommand("SDIFF", keys)
   result = r.readArray()
 
 proc sdiffstore*(r: var Redis, destination: string,
-                keys: seq[string]): BiggestInt =
+                 keys: openArray[string]): BiggestInt =
   ## Subtract multiple sets and store the resulting set in a key
   r.sendCommand("SDIFFSTORE", destination, keys)
   result = r.readInteger()
 
-proc sinter*(r: var Redis, keys: seq[string]): seq[string] =
+proc sinter*(r: var Redis, keys: openArray[string]): seq[string] =
   ## Intersect multiple sets
   r.sendCommand("SINTER", keys)
   result = r.readArray()
 
 proc sinterstore*(r: var Redis, destination: string,
-                 keys: seq[string]): BiggestInt =
+                  keys: openArray[string]): BiggestInt =
   ## Intersect multiple sets and store the resulting set in a key
   r.sendCommand("SINTERSTORE", destination, keys)
   result = r.readInteger()
@@ -862,13 +866,13 @@ proc srem*(r: var Redis, key: string, member: string): BiggestInt =
   r.sendCommand("SREM", key, [member])
   result = r.readInteger()
 
-proc sunion*(r: var Redis, keys: seq[string]): seq[string] =
+proc sunion*(r: var Redis, keys: openArray[string]): seq[string] =
   ## Add multiple sets
   r.sendCommand("SUNION", keys)
   result = r.readArray()
 
 proc sunionstore*(r: var Redis, destination: string,
-                 key: seq[string]): BiggestInt =
+                  key: openArray[string]): BiggestInt =
   ## Add multiple sets and store the resulting set in a key
   r.sendCommand("SUNIONSTORE", destination, key)
   result = r.readInteger()
@@ -948,7 +952,7 @@ proc zadd*(r: var Redis; key: string; score: float; member: string;
   result = r.readInteger()
 
 proc zadd*(r: var Redis; key: string;
-           members: seq[(string, float)]; nan = "-inf"): BiggestInt =
+           members: openArray[(string, float)]; nan = "-inf"): BiggestInt =
   ## Add members to a sorted set, or update their scores if they already exist.
   ## Provide `nan` as a substitute value for NaN floats.
   ## Returns the number of added members.
@@ -982,7 +986,7 @@ proc zincrby*(r: var Redis, key: string, increment: float,
   result = r.readBulkString()
 
 proc zinterstore*(r: var Redis, destination: string,
-                  keyWeights: seq[(string, float)],
+                  keyWeights: openArray[(string, float)],
                   aggregate = ""): BiggestInt =
   ## Intersect multiple sorted sets and store the resulting sorted set in
   ## a new key
@@ -1004,7 +1008,7 @@ proc zinterstore*(r: var Redis, destination: string,
   result = r.readInteger()
 
 proc zinterstore*(r: var Redis, destination: string,
-                 keys: seq[string], weights: seq[string] = @[],
+                 keys: openArray[string], weights: openArray[string] = @[],
                  aggregate = ""): BiggestInt =
   ## Intersect multiple sorted sets and store the resulting sorted set in
   ## a new key
@@ -1084,7 +1088,7 @@ proc zrem*(r: var Redis, key: string, member: string): BiggestInt =
   r.sendCommand("ZREM", key, [member])
   result = r.readInteger()
 
-proc zrem*(r: var Redis, key: string, members: seq[string]): BiggestInt =
+proc zrem*(r: var Redis, key: string, members: openArray[string]): BiggestInt =
   ## Remove members from a sorted set
   r.sendCommand("ZREM", key, members)
   result = r.readInteger()
@@ -1143,7 +1147,7 @@ proc zscore*(r: var Redis, key, member: string): float =
     return parseFloat(score)
 
 proc zunionstore*(r: var Redis, destination: string,
-                  keyWeights: seq[(string, float)],
+                  keyWeights: openArray[(string, float)],
                   aggregate = ""): BiggestInt =
   ## Add multiple sorted sets and store the resulting sorted set in a new key
   var args = @[destination, $keyWeights.len]
@@ -1163,17 +1167,35 @@ proc zunionstore*(r: var Redis, destination: string,
   r.sendCommand("ZUNIONSTORE", args)
   result = r.readInteger()
 
+proc zunionstore*(r: var Redis; destination: string;
+                  values: openArray[(string, float)];
+                  aggregate = ""; nan = "-inf"): BiggestInt =
+  ## Add multiple sorted sets with different weights and store the
+  ## resulting sorted set in a new key; specify `nan` for NaN weights.
+  var args = @[destination, $values.len]
+  for (key, weight) in values.items:
+    args.add(key)
+
+  args.add("WEIGHTS")
+  for (key, weight) in values.items:
+    args.add:
+      if weight.isNaN:
+        nan
+      else:
+        $weight
+
+  if aggregate != "":
+    args.add("AGGREGATE")
+    args.add(aggregate)
+
+  r.sendCommand("ZUNIONSTORE", args)
+  result = r.readInteger()
+
 proc zunionstore*(r: var Redis, destination: string,
-                 keys: seq[string], weights: seq[string] = @[],
-                 aggregate = ""): BiggestInt =
+                  keys: openArray[string]; aggregate = ""): BiggestInt =
   ## Add multiple sorted sets and store the resulting sorted set in a new key
   var args = @[destination, $keys.len]
   args.add(keys)
-
-  if weights.len != 0:
-    args.add("WEIGHTS")
-    for i in weights:
-      args.add(i)
 
   if aggregate.len != 0:
     args.add("AGGREGATE")
@@ -1184,7 +1206,7 @@ proc zunionstore*(r: var Redis, destination: string,
 
 # HyperLogLog
 
-proc pfadd*(r: var Redis, key: string, elements: seq[string]): BiggestInt =
+proc pfadd*(r: var Redis, key: string, elements: openArray[string]): BiggestInt =
   ## Add variable number of elements into special 'HyperLogLog' set type
   r.sendCommand("PFADD", key, elements)
   result = r.readInteger()
@@ -1194,12 +1216,12 @@ proc pfcount*(r: var Redis, key: string): BiggestInt =
   r.sendCommand("PFCOUNT", key)
   result = r.readInteger()
 
-proc pfcount*(r: var Redis, keys: seq[string]): BiggestInt =
+proc pfcount*(r: var Redis, keys: openArray[string]): BiggestInt =
   ## Count approximate number of elements in 'HyperLogLog'
   r.sendCommand("PFCOUNT", keys)
   result = r.readInteger()
 
-proc pfmerge*(r: var Redis, destination: string, sources: seq[string]) =
+proc pfmerge*(r: var Redis, destination: string, sources: openArray[string]) =
   ## Merge several source HyperLogLog's into one specified by destKey
   r.sendCommand("PFMERGE", destination, sources)
   raiseUnlessOkay r
@@ -1263,12 +1285,12 @@ proc unwatch*(r: var Redis) =
   r.sendCommand("UNWATCH")
   raiseUnlessOkay r
 
-proc watch*(r: var Redis, keys: seq[string]) =
+proc watch*(r: var Redis, keys: openArray[string]) =
   ## Watch the given keys to determine execution of the MULTI/EXEC block
   r.sendCommand("WATCH", keys)
   raiseUnlessOkay r
 
-template watchTimeout*(r: var Redis; keys: seq[string]; timeout: float; body: untyped) =
+template watchTimeout*(r: var Redis; keys: openArray[string]; timeout: float; body: untyped) =
   let done = epochTime() + timeout
   var first = true
   while epochTime() < done or first:
