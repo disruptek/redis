@@ -80,7 +80,7 @@ jobs:
           cd project
           nimble --accept develop
           nimble install -y "https://github.com/disruptek/balls"
-          balls --gc:arc --define:release --define:danger --backend:c --define:useMalloc
+          balls --path="\$projectDir" --gc:arc --define:release --define:danger --backend:c --define:useMalloc
 
       - name: Build docs
         if: ${{ matrix.docs }} == 'true'
