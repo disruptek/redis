@@ -1,0 +1,166 @@
+redisNil	redis.html#redisNil	redis: redisNil	
+redisCl	redis.html#redisCl	redis: redisCl	
+redisDol	redis.html#redisDol	redis: redisDol	
+Redis	redis.html#Redis	redis: Redis	
+RedisStatus	redis.html#RedisStatus	redis: RedisStatus	
+RedisError	redis.html#RedisError	redis: RedisError	
+ReplyError	redis.html#ReplyError	redis: ReplyError	
+WatchError	redis.html#WatchError	redis: WatchError	
+RedisCursor	redis.html#RedisCursor	redis: RedisCursor	
+isConnected	redis.html#isConnected,Redis	redis: isConnected(r: Redis): bool	
+close	redis.html#close,Redis	redis: close(r: var Redis)	
+`=destroy`	redis.html#=destroy,Redis	redis: `=destroy`(r: var Redis)	
+`$`	redis.html#$,RedisCursor	redis: `$`(cursor: RedisCursor): string	
+`==`	redis.html#==,RedisCursor,RedisCursor	redis: `==`(a, b: RedisCursor): bool	
+`$`	redis.html#$,RedisStatus	redis: `$`(status: RedisStatus): string	
+`==`	redis.html#==,RedisStatus,RedisStatus	redis: `==`(a, b: RedisStatus): bool	
+openRedis	redis.html#openRedis,string	redis: openRedis(host = &quot;localhost&quot;; port = 6379.Port): Redis	
+flushPipeline	redis.html#flushPipeline,Redis	redis: flushPipeline(r: var Redis; wasMulti = false): seq[string]	
+startPipelining	redis.html#startPipelining,Redis	redis: startPipelining(r: var Redis)	
+queuePipeline	redis.html#queuePipeline,Redis,string	redis: queuePipeline(r: var Redis; data: string)	
+del	redis.html#del,Redis,string	redis: del(r: var Redis; key: string): BiggestInt	
+del	redis.html#del,Redis,openArray[string]	redis: del(r: var Redis; keys: openArray[string]): BiggestInt	
+exists	redis.html#exists,Redis,string	redis: exists(r: var Redis; key: string): bool	
+expire	redis.html#expire,Redis,string,int	redis: expire(r: var Redis; key: string; seconds: int): bool	
+expireAt	redis.html#expireAt,Redis,string,int	redis: expireAt(r: var Redis; key: string; timestamp: int): bool	
+keys	redis.html#keys,Redis,string	redis: keys(r: var Redis; pattern: string): seq[string]	
+scan	redis.html#scan,Redis,RedisCursor	redis: scan(r: var Redis; cursor: var RedisCursor): seq[string]	
+scan	redis.html#scan,Redis,RedisCursor,string	redis: scan(r: var Redis; cursor: var RedisCursor; pattern: string): seq[string]	
+scan	redis.html#scan,Redis,RedisCursor,string,int	redis: scan(r: var Redis; cursor: var RedisCursor; pattern: string; count: int): seq[\n    string]	
+move	redis.html#move,Redis,string,int	redis: move(r: var Redis; key: string; db: int): bool	
+persist	redis.html#persist,Redis,string	redis: persist(r: var Redis; key: string): bool	
+randomKey	redis.html#randomKey,Redis	redis: randomKey(r: var Redis): string	
+rename	redis.html#rename,Redis,string,string	redis: rename(r: var Redis; key, newkey: string): RedisStatus	
+renameNX	redis.html#renameNX,Redis,string,string	redis: renameNX(r: var Redis; key, newkey: string): bool	
+ttl	redis.html#ttl,Redis,string	redis: ttl(r: var Redis; key: string): BiggestInt	
+keyType	redis.html#keyType,Redis,string	redis: keyType(r: var Redis; key: string): RedisStatus	
+append	redis.html#append,Redis,string,string	redis: append(r: var Redis; key, value: string): BiggestInt	
+decr	redis.html#decr,Redis,string	redis: decr(r: var Redis; key: string): BiggestInt	
+decrBy	redis.html#decrBy,Redis,string,int	redis: decrBy(r: var Redis; key: string; decrement: int): BiggestInt	
+mget	redis.html#mget,Redis,openArray[string]	redis: mget(r: var Redis; keys: openArray[string]): seq[string]	
+get	redis.html#get,Redis,string	redis: get(r: var Redis; key: string): string	
+getBit	redis.html#getBit,Redis,string,int	redis: getBit(r: var Redis; key: string; offset: int): BiggestInt	
+bitCount	redis.html#bitCount,Redis,string,openArray[string]	redis: bitCount(r: var Redis; key: string; limits: openArray[string]): BiggestInt	
+bitPos	redis.html#bitPos,Redis,string,int,openArray[string]	redis: bitPos(r: var Redis; key: string; bit: int; limits: openArray[string]): BiggestInt	
+getRange	redis.html#getRange,Redis,string,int,int	redis: getRange(r: var Redis; key: string; start, stop: int): string	
+getSet	redis.html#getSet,Redis,string,string	redis: getSet(r: var Redis; key: string; value: string): string	
+incr	redis.html#incr,Redis,string	redis: incr(r: var Redis; key: string): BiggestInt	
+incrBy	redis.html#incrBy,Redis,string,int	redis: incrBy(r: var Redis; key: string; increment: int): BiggestInt	
+msetk	redis.html#msetk,Redis,openArray[]	redis: msetk(r: var Redis; keyValues: openArray[(string, string)])	
+setk	redis.html#setk,Redis,string,string	redis: setk(r: var Redis; key, value: string)	
+setKeyWithExpire	redis.html#setKeyWithExpire,Redis,string,Positive,string	redis: setKeyWithExpire(r: var Redis; key: string; seconds: Positive; value: string)	
+setNX	redis.html#setNX,Redis,string,string	redis: setNX(r: var Redis; key, value: string): bool	
+setBit	redis.html#setBit,Redis,string,int,string	redis: setBit(r: var Redis; key: string; offset: int; value: string): BiggestInt	
+setEx	redis.html#setEx,Redis,string,int,string	redis: setEx(r: var Redis; key: string; seconds: int; value: string): RedisStatus	
+setRange	redis.html#setRange,Redis,string,int,string	redis: setRange(r: var Redis; key: string; offset: int; value: string): BiggestInt	
+strlen	redis.html#strlen,Redis,string	redis: strlen(r: var Redis; key: string): BiggestInt	
+hDel	redis.html#hDel,Redis,string,string	redis: hDel(r: var Redis; key: string; field: string): bool	
+hDel	redis.html#hDel,Redis,string,openArray[string]	redis: hDel(r: var Redis; key: string; fields: openArray[string]): BiggestInt	
+hExists	redis.html#hExists,Redis,string,string	redis: hExists(r: var Redis; key, field: string): bool	
+hGet	redis.html#hGet,Redis,string,string	redis: hGet(r: var Redis; key, field: string): string	
+hGetAll	redis.html#hGetAll,Redis,string	redis: hGetAll(r: var Redis; key: string): Table[string, string]	
+hIncrBy	redis.html#hIncrBy,Redis,string,string,int	redis: hIncrBy(r: var Redis; key, field: string; incr: int): BiggestInt	
+hKeys	redis.html#hKeys,Redis,string	redis: hKeys(r: var Redis; key: string): seq[string]	
+hLen	redis.html#hLen,Redis,string	redis: hLen(r: var Redis; key: string): BiggestInt	
+hMGet	redis.html#hMGet,Redis,string,openArray[string]	redis: hMGet(r: var Redis; key: string; fields: openArray[string]): seq[string]	
+hMSet	redis.html#hMSet,Redis,string,openArray[]	redis: hMSet(r: var Redis; key: string; fieldValues: openArray[(string, string)])	
+hSet	redis.html#hSet,Redis,string,string,string	redis: hSet(r: var Redis; key, field, value: string): BiggestInt	
+hSetNX	redis.html#hSetNX,Redis,string,string,string	redis: hSetNX(r: var Redis; key, field, value: string): BiggestInt	
+hVals	redis.html#hVals,Redis,string	redis: hVals(r: var Redis; key: string): seq[string]	
+bLPop	redis.html#bLPop,Redis,openArray[string],int	redis: bLPop(r: var Redis; keys: openArray[string]; timeout: int): seq[string]	
+bRPop	redis.html#bRPop,Redis,openArray[string],int	redis: bRPop(r: var Redis; keys: openArray[string]; timeout: int): seq[string]	
+bRPopLPush	redis.html#bRPopLPush,Redis,string,string,int	redis: bRPopLPush(r: var Redis; source, destination: string; timeout: int): string	
+lIndex	redis.html#lIndex,Redis,string,int	redis: lIndex(r: var Redis; key: string; index: int): string	
+lInsert	redis.html#lInsert,Redis,string,bool,string,string	redis: lInsert(r: var Redis; key: string; before: bool; pivot, value: string): BiggestInt	
+lLen	redis.html#lLen,Redis,string	redis: lLen(r: var Redis; key: string): BiggestInt	
+lPop	redis.html#lPop,Redis,string	redis: lPop(r: var Redis; key: string): string	
+lPush	redis.html#lPush,Redis,string,string	redis: lPush(r: var Redis; key, value: string; create = true): BiggestInt	
+lPush	redis.html#lPush,Redis,string,openArray[string]	redis: lPush(r: var Redis; key: string; values: openArray[string]; create = true): BiggestInt	
+lRange	redis.html#lRange,Redis,string,int,int	redis: lRange(r: var Redis; key: string; start, stop: int): seq[string]	
+lRem	redis.html#lRem,Redis,string,string,int	redis: lRem(r: var Redis; key: string; value: string; count = 0): BiggestInt	
+lSet	redis.html#lSet,Redis,string,int,string	redis: lSet(r: var Redis; key: string; index: int; value: string)	
+lTrim	redis.html#lTrim,Redis,string,int,int	redis: lTrim(r: var Redis; key: string; start, stop: int)	
+rPop	redis.html#rPop,Redis,string	redis: rPop(r: var Redis; key: string): string	
+rPopLPush	redis.html#rPopLPush,Redis,string,string	redis: rPopLPush(r: var Redis; source, destination: string): string	
+rPush	redis.html#rPush,Redis,string,string	redis: rPush(r: var Redis; key, value: string; create = true): BiggestInt	
+rPush	redis.html#rPush,Redis,string,openArray[string]	redis: rPush(r: var Redis; key: string; values: openArray[string]; create = true): BiggestInt	
+sort	redis.html#sort,Redis,string,string,int,int,openArray[string]	redis: sort(r: var Redis; key: string; by = &quot;&quot;; offset = -1; count = -1; desc = false;\n     alpha = false; get: openArray[string] = @[]): seq[string]	
+sadd	redis.html#sadd,Redis,string,string	redis: sadd(r: var Redis; key: string; member: string): BiggestInt	
+sadd	redis.html#sadd,Redis,string,openArray[string]	redis: sadd(r: var Redis; key: string; members: openArray[string]): BiggestInt	
+scard	redis.html#scard,Redis,string	redis: scard(r: var Redis; key: string): BiggestInt	
+sdiff	redis.html#sdiff,Redis,openArray[string]	redis: sdiff(r: var Redis; keys: openArray[string]): seq[string]	
+sdiffstore	redis.html#sdiffstore,Redis,string,openArray[string]	redis: sdiffstore(r: var Redis; destination: string; keys: openArray[string]): BiggestInt	
+sinter	redis.html#sinter,Redis,openArray[string]	redis: sinter(r: var Redis; keys: openArray[string]): seq[string]	
+sinterstore	redis.html#sinterstore,Redis,string,openArray[string]	redis: sinterstore(r: var Redis; destination: string; keys: openArray[string]): BiggestInt	
+sismember	redis.html#sismember,Redis,string,string	redis: sismember(r: var Redis; key: string; member: string): bool	
+smembers	redis.html#smembers,Redis,string	redis: smembers(r: var Redis; key: string): seq[string]	
+smove	redis.html#smove,Redis,string,string,string	redis: smove(r: var Redis; source: string; destination: string; member: string): BiggestInt	
+spop	redis.html#spop,Redis,string	redis: spop(r: var Redis; key: string): string	
+srandmember	redis.html#srandmember,Redis,string	redis: srandmember(r: var Redis; key: string): string	
+srandmember	redis.html#srandmember,Redis,string,int	redis: srandmember(r: var Redis; key: string; count: int): seq[string]	
+srem	redis.html#srem,Redis,string,string	redis: srem(r: var Redis; key: string; member: string): BiggestInt	
+sunion	redis.html#sunion,Redis,openArray[string]	redis: sunion(r: var Redis; keys: openArray[string]): seq[string]	
+sunionstore	redis.html#sunionstore,Redis,string,openArray[string]	redis: sunionstore(r: var Redis; destination: string; key: openArray[string]): BiggestInt	
+readArrayWithScores	redis.html#readArrayWithScores,Redis	redis: readArrayWithScores(r: var Redis): seq[(string, float)]	
+zpopmin	redis.html#zpopmin,Redis,string,int	redis: zpopmin(r: var Redis; key: string; count = 1): seq[(string, float)]	
+zpopmax	redis.html#zpopmax,Redis,string,int	redis: zpopmax(r: var Redis; key: string; count = 1): seq[(string, float)]	
+zrandmember	redis.html#zrandmember,Redis,string	redis: zrandmember(r: var Redis; key: string): string	
+zrandmembers	redis.html#zrandmembers,Redis,string,int	redis: zrandmembers(r: var Redis; key: string; count = 1): seq[string]	
+zrandmembers	redis.html#zrandmembers,Redis,string,bool,int	redis: zrandmembers(r: var Redis; key: string; withScores: bool; count = 1): seq[\n    (string, float)]	
+zadd	redis.html#zadd,Redis,string,float,string,string	redis: zadd(r: var Redis; key: string; score: float; member: string; nan = &quot;-inf&quot;): BiggestInt	
+zadd	redis.html#zadd,Redis,string,openArray[],string	redis: zadd(r: var Redis; key: string; members: openArray[(string, float)];\n     nan = &quot;-inf&quot;): BiggestInt	
+zcard	redis.html#zcard,Redis,string	redis: zcard(r: var Redis; key: string): BiggestInt	
+zcount	redis.html#zcount,Redis,string,string,string	redis: zcount(r: var Redis; key, min, max: string): BiggestInt	
+zincrby	redis.html#zincrby,Redis,string,float,string	redis: zincrby(r: var Redis; key: string; increment: float; member: string): string	
+zinterstore	redis.html#zinterstore,Redis,string,openArray[],string	redis: zinterstore(r: var Redis; destination: string;\n            keyWeights: openArray[(string, float)]; aggregate = &quot;&quot;): BiggestInt	
+zinterstore	redis.html#zinterstore,Redis,string,openArray[string],openArray[string],string	redis: zinterstore(r: var Redis; destination: string; keys: openArray[string];\n            weights: openArray[string] = @[]; aggregate = &quot;&quot;): BiggestInt	
+zrange	redis.html#zrange,Redis,string,int,int	redis: zrange(r: var Redis; key: string; start, stop: int): seq[string]	
+zrange	redis.html#zrange,Redis,string,int,int,bool	redis: zrange(r: var Redis; key: string; start, stop: int; withScores: bool): seq[\n    (string, float)]	
+zrangebyscore	redis.html#zrangebyscore,Redis,string,string,string,int,int	redis: zrangebyscore(r: var Redis; key, min, max: string; withScores = false;\n              limit = false; limitOffset = 0; limitCount = 0): seq[string]	
+zrangebylex	redis.html#zrangebylex,Redis,string,string,string,int,int	redis: zrangebylex(r: var Redis; key, start, stop: string; limit = false;\n            limitOffset = 0; limitCount = 0): seq[string]	
+zrank	redis.html#zrank,Redis,string,string	redis: zrank(r: var Redis; key, member: string): BiggestInt	
+zrem	redis.html#zrem,Redis,string,string	redis: zrem(r: var Redis; key: string; member: string): BiggestInt	
+zrem	redis.html#zrem,Redis,string,openArray[string]	redis: zrem(r: var Redis; key: string; members: openArray[string]): BiggestInt	
+zremrangebyrank	redis.html#zremrangebyrank,Redis,string,string,string	redis: zremrangebyrank(r: var Redis; key, start, stop: string): BiggestInt	
+zremrangebyscore	redis.html#zremrangebyscore,Redis,string,string,string	redis: zremrangebyscore(r: var Redis; key, min, max: string): BiggestInt	
+zrevrange	redis.html#zrevrange,Redis,string,string,string	redis: zrevrange(r: var Redis; key: string; start: string; stop: string;\n          withScores = false): seq[string]	
+zrevrangebyscore	redis.html#zrevrangebyscore,Redis,string,string,string,int,int	redis: zrevrangebyscore(r: var Redis; key, min, max: string; withScores = false;\n                 limit = false; limitOffset = 0; limitCount = 0): seq[string]	
+zrevrank	redis.html#zrevrank,Redis,string,string	redis: zrevrank(r: var Redis; key, member: string): string	
+zscore	redis.html#zscore,Redis,string,string	redis: zscore(r: var Redis; key, member: string): float	
+zunionstore	redis.html#zunionstore,Redis,string,openArray[],string	redis: zunionstore(r: var Redis; destination: string;\n            keyWeights: openArray[(string, float)]; aggregate = &quot;&quot;): BiggestInt	
+zunionstore	redis.html#zunionstore,Redis,string,openArray[],string,string	redis: zunionstore(r: var Redis; destination: string;\n            values: openArray[(string, float)]; aggregate = &quot;&quot;; nan = &quot;-inf&quot;): BiggestInt	
+zunionstore	redis.html#zunionstore,Redis,string,openArray[string],string	redis: zunionstore(r: var Redis; destination: string; keys: openArray[string];\n            aggregate = &quot;&quot;): BiggestInt	
+pfadd	redis.html#pfadd,Redis,string,openArray[string]	redis: pfadd(r: var Redis; key: string; elements: openArray[string]): BiggestInt	
+pfcount	redis.html#pfcount,Redis,string	redis: pfcount(r: var Redis; key: string): BiggestInt	
+pfcount	redis.html#pfcount,Redis,openArray[string]	redis: pfcount(r: var Redis; keys: openArray[string]): BiggestInt	
+pfmerge	redis.html#pfmerge,Redis,string,openArray[string]	redis: pfmerge(r: var Redis; destination: string; sources: openArray[string])	
+publish	redis.html#publish,Redis,string,string	redis: publish(r: var Redis; channel: string; message: string): BiggestInt	
+subscribe	redis.html#subscribe,Redis,string	redis: subscribe(r: var Redis; channel: string)	
+nextMessage	redis.html#nextMessage,Redis	redis: nextMessage(r: var Redis): tuple[channel: string, message: string]	
+discardMulti	redis.html#discardMulti,Redis	redis: discardMulti(r: var Redis)	
+exec	redis.html#exec,Redis	redis: exec(r: var Redis): seq[string]	
+multi	redis.html#multi,Redis	redis: multi(r: var Redis)	
+unwatch	redis.html#unwatch,Redis	redis: unwatch(r: var Redis)	
+watch	redis.html#watch,Redis,openArray[string]	redis: watch(r: var Redis; keys: openArray[string])	
+watchTimeout	redis.html#watchTimeout.t,Redis,openArray[string],float,untyped	redis: watchTimeout(r: var Redis; keys: openArray[string]; timeout: float;\n             body: untyped)	
+auth	redis.html#auth,Redis,string	redis: auth(r: var Redis; password: string)	
+echoServ	redis.html#echoServ,Redis,string	redis: echoServ(r: var Redis; message: string): string	
+ping	redis.html#ping,Redis	redis: ping(r: var Redis): RedisStatus	
+quit	redis.html#quit,Redis	redis: quit(r: var Redis)	
+select	redis.html#select,Redis,int	redis: select(r: var Redis; index: int): RedisStatus	
+bgrewriteaof	redis.html#bgrewriteaof,Redis	redis: bgrewriteaof(r: var Redis)	
+bgsave	redis.html#bgsave,Redis	redis: bgsave(r: var Redis)	
+configGet	redis.html#configGet,Redis,string	redis: configGet(r: var Redis; parameter: string): seq[string]	
+configSet	redis.html#configSet,Redis,string,string	redis: configSet(r: var Redis; parameter: string; value: string)	
+configResetStat	redis.html#configResetStat,Redis	redis: configResetStat(r: var Redis)	
+dbsize	redis.html#dbsize,Redis	redis: dbsize(r: var Redis): BiggestInt	
+debugObject	redis.html#debugObject,Redis,string	redis: debugObject(r: var Redis; key: string): RedisStatus	
+debugSegfault	redis.html#debugSegfault,Redis	redis: debugSegfault(r: var Redis)	
+flushall	redis.html#flushall,Redis	redis: flushall(r: var Redis): RedisStatus	
+flushdb	redis.html#flushdb,Redis	redis: flushdb(r: var Redis): RedisStatus	
+info	redis.html#info,Redis	redis: info(r: var Redis): string	
+infoTable	redis.html#infoTable,Redis	redis: infoTable(r: var Redis): Table[string, string]	
+lastsave	redis.html#lastsave,Redis	redis: lastsave(r: var Redis): BiggestInt	
+save	redis.html#save,Redis	redis: save(r: var Redis)	
+shutdown	redis.html#shutdown,Redis	redis: shutdown(r: var Redis)	
+slaveof	redis.html#slaveof,Redis,string,string	redis: slaveof(r: var Redis; host: string; port: string)	
