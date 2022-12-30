@@ -37,9 +37,11 @@ proc close*(r: var Redis) =
   ## disconnect from redis
   if r.isConnected:
     close r.socket
-    r.socket = nil
+    reset r.socket
 
-proc `=destroy`*(r: var Redis) = close r
+proc `=destroy`*(r: var Redis) =
+  close r
+  reset r.pipeline
 
 proc `$`*(cursor: RedisCursor): string {.borrow.}
 proc `==`*(a, b: RedisCursor): bool {.borrow.}
