@@ -881,8 +881,7 @@ proc sunionstore*(r: var Redis, destination: string,
 
 # Sorted sets
 
-proc readArrayWithScores*(r: var Redis): seq[(string, float)] =
-  let results = r.readArray()
+proc parseArrayWithScores*(results: openArray[string]): seq[(string, float)] =
   if results.len > 0:
     for index in 0..<(results.len div 2):
       template score: string {.dirty.} = results[(index * 2) + 1]
@@ -904,6 +903,19 @@ proc readArrayWithScores*(r: var Redis): seq[(string, float)] =
           except ValueError:
             NaN
       result.add (results[index * 2], value)
+
+proc readArrayWithScores*(r: var Redis): seq[(string, float)] =
+  let results = r.readArray()
+  result = parseArrayWithScores(results)
+
+proc zscan*(r: var Redis; key: string; cursor: var int): seq[(string, float)] =
+  ## Scan a sorted set, updating the supplied cursor as appropriate.
+  ## Supplying a cursor with the value 0 starts a new scan.
+  ## A zscan() which leaves the cursor with the value 0 is complete.
+  r.sendCommand("ZSCAN", key, $cursor)
+  let reply = r.readArray()
+  cursor = parseBiggestInt reply[0]
+  result = parseArrayWithScores(reply[1..reply.high])
 
 proc zpopmin*(r: var Redis; key: string; count=1): seq[(string, float)] =
   ## Remove `count` lowest-scored members of a sorted set `key`.
@@ -1141,12 +1153,24 @@ proc zrevrank*(r: var Redis, key, member: string): string =
   except ReplyError:
     result = redisNil
 
-proc zscore*(r: var Redis, key, member: string): float =
-  ## Get the score associated with the given member in a sorted set
+proc zscore*(r: var Redis, key, member: string): Option[float] =
+  ## Get the score associated with the given `member` in a sorted set `key`;
+  ## returns `none float` if `member` is missing from `key`.
   r.sendCommand("ZSCORE", key, [member])
   let score = r.readBulkString()
   if score.len > 0 and score != redisNil:
-    return parseFloat(score)
+    result = some parseFloat(score)
+
+proc zscore*(r: var Redis, key, member: string; missing: float): float =
+  ## Get the score associated with the given `member` in a sorted set `key`;
+  ## returns the `missing` argument if `member` is missing from `key`.
+  r.sendCommand("ZSCORE", key, [member])
+  let score = r.readBulkString()
+  result =
+    if score.len > 0 and score != redisNil:
+      parseFloat score
+    else:
+      missing
 
 proc zunionstore*(r: var Redis, destination: string,
                   keyWeights: openArray[(string, float)],
