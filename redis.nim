@@ -885,12 +885,10 @@ proc parseArrayWithScores*(results: openArray[string]): seq[(string, float)] =
   if results.len > 0:
     for index in 0..<(results.len div 2):
       template score: string {.dirty.} = results[(index * 2) + 1]
-      when not defined(release):
-        # guard something crazy coming out of redis
-        if score in ["", "inf", "Inf", "-inf", "-Inf", "nan", "NaN"]:
-          raise Defect.newException "unexpected score: " & repr(score)
       let value =
         case score
+        of "":
+          raise Defect.newException "unexpectedly empty score"
         of "-inf", "-Inf":
           -Inf
         of "inf", "Inf":
