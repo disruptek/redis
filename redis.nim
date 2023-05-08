@@ -886,14 +886,14 @@ proc parseArrayWithScores*(results: openArray[string]): seq[(string, float)] =
     for index in 0..<(results.len div 2):
       template score: string {.dirty.} = results[(index * 2) + 1]
       let value =
-        case score
+        case score.toLowerAscii
         of "":
           raise Defect.newException "unexpectedly empty score"
-        of "-inf", "-Inf":
+        of "-inf":
           -Inf
-        of "inf", "Inf":
+        of "inf", "+inf":
           Inf
-        of "nan", "NaN":
+        of "nan":
           NaN
         else:
           try:
