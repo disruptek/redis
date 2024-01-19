@@ -12,6 +12,21 @@ const
   redisCl* = "\r\n"
   redisDol* = "$"
 
+# something something biggest int is int duh
+when defined(isNimSkull):
+  type LargestInt* = int
+  proc parseLargestInt(s: string; i: var LargestInt; start = 0): int =
+    var b: BiggestInt
+    result = parseBiggestInt(s, b, start)
+    i = b.LargestInt
+else:
+  type LargestInt* = BiggestInt
+  proc parseLargestInt(s: string; i: var LargestInt; start = 0): int =
+    parseBiggestInt(s, i, start)
+
+proc parseLargestInt(s: string): LargestInt =
+  doAssert 0 < parseLargestInt(s, result, 0)
+
 type
   Pipeline = object
     enabled: bool
@@ -27,7 +42,7 @@ type
   ReplyError* = object of RedisError ## Invalid reply from redis
   WatchError* = object of RedisError ## Watch error in redis
 
-  RedisCursor* = distinct BiggestInt
+  RedisCursor* = distinct LargestInt
 
 proc isConnected*(r: Redis): bool =
   ## true if the client is connected to a redis server
@@ -116,7 +131,7 @@ proc raiseUnlessOkay(r: Redis) =
   elif $status != "OK":
     raise ReplyError.newException "Expected `OK` got `$1`" % [$status]
 
-proc parseInteger(r: Redis, line = ""): BiggestInt =
+proc parseInteger(r: Redis, line = ""): LargestInt =
   if r.pipeline.enabled:
     return -1
 
@@ -133,10 +148,10 @@ proc parseInteger(r: Redis, line = ""): BiggestInt =
     raiseInvalidReply(r, ':', line[0])
 
   # Strip ':'
-  if parseBiggestInt(line, result, 1) == 0:
+  if parseLargestInt(line, result, 1) == 0:
     raise ReplyError.newException "Unable to parse integer."
 
-proc readInteger(r: Redis): BiggestInt =
+proc readInteger(r: Redis): LargestInt =
   let line = r.managedRecvLine()
   if line.len == 0:
     return -1
@@ -353,12 +368,12 @@ proc sendCommand(r: var Redis, cmd: string, arg1: string, args: openArray[string
 
 # Keys
 
-proc del*(r: var Redis, key: string): BiggestInt =
+proc del*(r: var Redis, key: string): LargestInt =
   ## Delete a key
   r.sendCommand("DEL", [key])
   result = r.readInteger()
 
-proc del*(r: var Redis, keys: openArray[string]): BiggestInt =
+proc del*(r: var Redis, keys: openArray[string]): LargestInt =
   ## Delete keys
   r.sendCommand("DEL", keys)
   result = r.readInteger()
@@ -390,7 +405,7 @@ proc scan*(r: var Redis, cursor: var RedisCursor): seq[string] =
   ## using default Redis values for MATCH and COUNT parameters
   r.sendCommand("SCAN", $cursor)
   let reply = r.readArray()
-  cursor = RedisCursor parseBiggestInt(reply[0])
+  cursor = RedisCursor parseLargestInt(reply[0])
   result = reply[1..high(reply)]
 
 proc scan*(r: var Redis, cursor: var RedisCursor, pattern: string): seq[string] =
@@ -398,7 +413,7 @@ proc scan*(r: var Redis, cursor: var RedisCursor, pattern: string): seq[string] 
   ## using cursor as a client query identifier. Using default Redis value for COUNT argument
   r.sendCommand("SCAN", $cursor, ["MATCH", pattern])
   let reply = r.readArray()
-  cursor = RedisCursor parseBiggestInt(reply[0])
+  cursor = RedisCursor parseLargestInt(reply[0])
   result = reply[1..high(reply)]
 
 proc scan*(r: var Redis, cursor: var RedisCursor, pattern: string, count: int): seq[string] =
@@ -406,7 +421,7 @@ proc scan*(r: var Redis, cursor: var RedisCursor, pattern: string, count: int): 
   ## using cursor as a client query identifier.
   r.sendCommand("SCAN", $cursor, ["MATCH", pattern, "COUNT", $count])
   let reply = r.readArray()
-  cursor = RedisCursor parseBiggestInt(reply[0])
+  cursor = RedisCursor parseLargestInt(reply[0])
   result = reply[1..high(reply)]
 
 proc move*(r: var Redis, key: string, db: int): bool =
@@ -438,7 +453,7 @@ proc renameNX*(r: var Redis, key, newkey: string): bool =
   r.sendCommand("RENAMENX", key, [newkey])
   result = (r.readInteger()) == 1
 
-proc ttl*(r: var Redis, key: string): BiggestInt =
+proc ttl*(r: var Redis, key: string): LargestInt =
   ## Get the time to live for a key
   r.sendCommand("TTL", key)
   return r.readInteger()
@@ -451,17 +466,17 @@ proc keyType*(r: var Redis, key: string): RedisStatus =
 
 # Strings
 
-proc append*(r: var Redis, key, value: string): BiggestInt =
+proc append*(r: var Redis, key, value: string): LargestInt =
   ## Append a value to a key
   r.sendCommand("APPEND", key, [value])
   result = r.readInteger()
 
-proc decr*(r: var Redis, key: string): BiggestInt =
+proc decr*(r: var Redis, key: string): LargestInt =
   ## Decrement the integer value of a key by one
   r.sendCommand("DECR", key)
   result = r.readInteger()
 
-proc decrBy*(r: var Redis, key: string, decrement: int): BiggestInt =
+proc decrBy*(r: var Redis, key: string, decrement: int): LargestInt =
   ## Decrement the integer value of a key by the given number
   r.sendCommand("DECRBY", key, [$decrement])
   result = r.readInteger()
@@ -477,17 +492,17 @@ proc get*(r: var Redis, key: string): string =
   result = r.readBulkString()
 
 #TODO: BITOP
-proc getBit*(r: var Redis, key: string, offset: int): BiggestInt =
+proc getBit*(r: var Redis, key: string, offset: int): LargestInt =
   ## Returns the bit value at offset in the string value stored at key
   r.sendCommand("GETBIT", key, [$offset])
   result = r.readInteger()
 
-proc bitCount*(r: var Redis, key: string, limits: openArray[string]): BiggestInt =
+proc bitCount*(r: var Redis, key: string, limits: openArray[string]): LargestInt =
   ## Returns the number of set bits, optionally within limits
   r.sendCommand("BITCOUNT", key, limits)
   result = r.readInteger()
 
-proc bitPos*(r: var Redis, key: string, bit: int, limits: openArray[string]): BiggestInt =
+proc bitPos*(r: var Redis, key: string, bit: int, limits: openArray[string]): LargestInt =
   ## Returns position of the first occurence of bit within limits
   var parameters: seq[string]
   newSeq(parameters, len(limits) + 1)
@@ -508,12 +523,12 @@ proc getSet*(r: var Redis, key: string, value: string): string =
   r.sendCommand("GETSET", key, [value])
   result = r.readBulkString()
 
-proc incr*(r: var Redis, key: string): BiggestInt =
+proc incr*(r: var Redis, key: string): LargestInt =
   ## Increment the integer value of a key by one.
   r.sendCommand("INCR", key)
   result = r.readInteger()
 
-proc incrBy*(r: var Redis, key: string, increment: int): BiggestInt =
+proc incrBy*(r: var Redis, key: string, increment: int): LargestInt =
   ## Increment the integer value of a key by the given number
   r.sendCommand("INCRBY", key, [$increment])
   result = r.readInteger()
@@ -549,7 +564,7 @@ proc setNX*(r: var Redis, key, value: string): bool =
   result = (r.readInteger()) == 1
 
 proc setBit*(r: var Redis, key: string, offset: int,
-             value: string): BiggestInt =
+             value: string): LargestInt =
   ## Sets or clears the bit at offset in the string value stored at key
   r.sendCommand("SETBIT", key, [$offset, value])
   result = r.readInteger()
@@ -560,12 +575,12 @@ proc setEx*(r: var Redis, key: string, seconds: int, value: string): RedisStatus
   raiseUnlessOkay r
 
 proc setRange*(r: var Redis, key: string, offset: int,
-               value: string): BiggestInt =
+               value: string): LargestInt =
   ## Overwrite part of a string at key starting at the specified offset
   r.sendCommand("SETRANGE", key, [$offset, value])
   result = r.readInteger()
 
-proc strlen*(r: var Redis, key: string): BiggestInt =
+proc strlen*(r: var Redis, key: string): LargestInt =
   ## Get the length of the value stored in a key. Returns 0 when key doesn't
   ## exist.
   r.sendCommand("STRLEN", key)
@@ -577,7 +592,7 @@ proc hDel*(r: var Redis, key: string, field: string): bool =
   r.sendCommand("HDEL", key, [field])
   result = (r.readInteger()) == 1
 
-proc hDel*(r: var Redis, key: string, fields: openArray[string]): BiggestInt =
+proc hDel*(r: var Redis, key: string, fields: openArray[string]): LargestInt =
   ## Delete hash fields at `key`. Returns number of fields removed.
   r.sendCommand("HDEL", key, fields)
   result = r.readInteger()
@@ -597,7 +612,7 @@ proc hGetAll*(r: var Redis, key: string): Table[string, string] =
   r.sendCommand("HGETALL", key)
   result = r.readArrayToTable()
 
-proc hIncrBy*(r: var Redis, key, field: string, incr: int): BiggestInt =
+proc hIncrBy*(r: var Redis, key, field: string, incr: int): LargestInt =
   ## Increment the integer value of a hash field by the given number
   r.sendCommand("HINCRBY", key, [field, $incr])
   result = r.readInteger()
@@ -607,7 +622,7 @@ proc hKeys*(r: var Redis, key: string): seq[string] =
   r.sendCommand("HKEYS", key)
   result = r.readArray()
 
-proc hLen*(r: var Redis, key: string): BiggestInt =
+proc hLen*(r: var Redis, key: string): LargestInt =
   ## Get the number of fields in a hash
   r.sendCommand("HLEN", key)
   result = r.readInteger()
@@ -626,12 +641,12 @@ proc hMSet*(r: var Redis, key: string, fieldValues: openArray[(string, string)])
   r.sendCommand("HMSET", args)
   raiseUnlessOkay r
 
-proc hSet*(r: var Redis, key, field, value: string): BiggestInt =
+proc hSet*(r: var Redis, key, field, value: string): LargestInt =
   ## Set the string value of a hash field
   r.sendCommand("HSET", key, [field, value])
   result = r.readInteger()
 
-proc hSetNX*(r: var Redis, key, field, value: string): BiggestInt =
+proc hSetNX*(r: var Redis, key, field, value: string): LargestInt =
   ## Set the value of a hash field, only if the field does **not** exist
   r.sendCommand("HSETNX", key, [field, value])
   result = r.readInteger()
@@ -673,13 +688,13 @@ proc lIndex*(r: var Redis, key: string, index: int): string  =
   r.sendCommand("LINDEX", key, [$index])
   result = r.readBulkString()
 
-proc lInsert*(r: var Redis, key: string, before: bool, pivot, value: string): BiggestInt =
+proc lInsert*(r: var Redis, key: string, before: bool, pivot, value: string): LargestInt =
   ## Insert an element before or after another element in a list
   var pos = if before: "BEFORE" else: "AFTER"
   r.sendCommand("LINSERT", key, [pos, pivot, value])
   result = r.readInteger()
 
-proc lLen*(r: var Redis, key: string): BiggestInt =
+proc lLen*(r: var Redis, key: string): LargestInt =
   ## Get the length of a list
   r.sendCommand("LLEN", key)
   result = r.readInteger()
@@ -689,7 +704,7 @@ proc lPop*(r: var Redis, key: string): string =
   r.sendCommand("LPOP", key)
   result = r.readBulkString()
 
-proc lPush*(r: var Redis, key, value: string, create = true): BiggestInt =
+proc lPush*(r: var Redis, key, value: string, create = true): LargestInt =
   ## Prepend a value to a list. Returns the length of the list after the push.
   ## The ``create`` param specifies whether a list should be created if it
   ## doesn't exist at ``key``. More specifically if ``create`` is true, `LPUSH`
@@ -701,7 +716,7 @@ proc lPush*(r: var Redis, key, value: string, create = true): BiggestInt =
 
   result = r.readInteger()
 
-proc lPush*(r: var Redis, key: string, values: openArray[string], create = true): BiggestInt =
+proc lPush*(r: var Redis, key: string, values: openArray[string], create = true): LargestInt =
   ## Prepend a value to a list. Returns the length of the list after the push.
   ## The ``create`` param specifies whether a list should be created if it
   ## doesn't exist at ``key``. More specifically if ``create`` is true, `LPUSH`
@@ -719,7 +734,7 @@ proc lRange*(r: var Redis, key: string, start, stop: int): seq[string] =
   r.sendCommand("LRANGE", key, [$start, $stop])
   result = r.readArray()
 
-proc lRem*(r: var Redis, key: string, value: string, count = 0): BiggestInt =
+proc lRem*(r: var Redis, key: string, value: string, count = 0): LargestInt =
   ## Remove elements from a list. Returns the number of elements that have been
   ## removed.
   r.sendCommand("LREM", key, [$count, value])
@@ -746,7 +761,7 @@ proc rPopLPush*(r: var Redis, source, destination: string): string =
   result = r.readBulkString()
 
 proc rPush*(r: var Redis, key, value: string,
-            create = true): BiggestInt =
+            create = true): LargestInt =
   ## Append a value to a list. Returns the length of the list after the push.
   ## The ``create`` param specifies whether a list should be created if it
   ## doesn't exist at ``key``. More specifically if ``create`` is true, `RPUSH`
@@ -759,7 +774,7 @@ proc rPush*(r: var Redis, key, value: string,
   result = r.readInteger()
 
 proc rPush*(r: var Redis, key: string, values: openArray[string],
-            create = true): BiggestInt =
+            create = true): LargestInt =
   ## Append a value to a list. Returns the length of the list after the push.
   ## The ``create`` param specifies whether a list should be created if it
   ## doesn't exist at ``key``. More specifically if ``create`` is true, `RPUSH`
@@ -795,17 +810,17 @@ proc sort*(r: var Redis, key: string, by="", offset = -1, count = -1,
 
 # Sets
 
-proc sadd*(r: var Redis, key: string, member: string): BiggestInt =
+proc sadd*(r: var Redis, key: string, member: string): LargestInt =
   ## Add a member to a set
   r.sendCommand("SADD", key, [member])
   result = r.readInteger()
 
-proc sadd*(r: var Redis, key: string, members: openArray[string]): BiggestInt =
+proc sadd*(r: var Redis, key: string, members: openArray[string]): LargestInt =
   ## Add a member to a set
   r.sendCommand("SADD", key, members)
   result = r.readInteger()
 
-proc scard*(r: var Redis, key: string): BiggestInt =
+proc scard*(r: var Redis, key: string): LargestInt =
   ## Get the number of members in a set
   r.sendCommand("SCARD", key)
   result = r.readInteger()
@@ -816,7 +831,7 @@ proc sdiff*(r: var Redis, keys: openArray[string]): seq[string] =
   result = r.readArray()
 
 proc sdiffstore*(r: var Redis, destination: string,
-                 keys: openArray[string]): BiggestInt =
+                 keys: openArray[string]): LargestInt =
   ## Subtract multiple sets and store the resulting set in a key
   r.sendCommand("SDIFFSTORE", destination, keys)
   result = r.readInteger()
@@ -827,7 +842,7 @@ proc sinter*(r: var Redis, keys: openArray[string]): seq[string] =
   result = r.readArray()
 
 proc sinterstore*(r: var Redis, destination: string,
-                  keys: openArray[string]): BiggestInt =
+                  keys: openArray[string]): LargestInt =
   ## Intersect multiple sets and store the resulting set in a key
   r.sendCommand("SINTERSTORE", destination, keys)
   result = r.readInteger()
@@ -843,7 +858,7 @@ proc smembers*(r: var Redis, key: string): seq[string] =
   result = r.readArray()
 
 proc smove*(r: var Redis, source: string, destination: string,
-           member: string): BiggestInt =
+           member: string): LargestInt =
   ## Move a member from one set to another
   r.sendCommand("SMOVE", source, [destination, member])
   result = r.readInteger()
@@ -863,7 +878,7 @@ proc srandmember*(r: var Redis, key: string; count: int): seq[string] =
   r.sendCommand("SRANDMEMBER", key, [$count])
   result = r.readArray()
 
-proc srem*(r: var Redis, key: string, member: string): BiggestInt =
+proc srem*(r: var Redis, key: string, member: string): LargestInt =
   ## Remove a member from a set
   r.sendCommand("SREM", key, [member])
   result = r.readInteger()
@@ -874,7 +889,7 @@ proc sunion*(r: var Redis, keys: openArray[string]): seq[string] =
   result = r.readArray()
 
 proc sunionstore*(r: var Redis, destination: string,
-                  key: openArray[string]): BiggestInt =
+                  key: openArray[string]): LargestInt =
   ## Add multiple sets and store the resulting set in a key
   r.sendCommand("SUNIONSTORE", destination, key)
   result = r.readInteger()
@@ -912,7 +927,7 @@ proc zscan*(r: var Redis; key: string; cursor: var int): seq[(string, float)] =
   ## A zscan() which leaves the cursor with the value 0 is complete.
   r.sendCommand("ZSCAN", key, $cursor)
   let reply = r.readArray()
-  cursor = parseBiggestInt reply[0]
+  cursor = parseLargestInt reply[0]
   result = parseArrayWithScores(reply[1..reply.high])
 
 proc zpopmin*(r: var Redis; key: string; count=1): seq[(string, float)] =
@@ -950,7 +965,7 @@ proc zrandmembers*(r: var Redis; key: string; withScores: bool; count=1): seq[(s
       result.add (member, NaN)
 
 proc zadd*(r: var Redis; key: string; score: float; member: string;
-           nan = "-inf"): BiggestInt =
+           nan = "-inf"): LargestInt =
   ## Add a member to a sorted set, or update its score if it already
   ## exists.
   ## Provide `nan` as a substitute value for NaN scores.
@@ -964,7 +979,7 @@ proc zadd*(r: var Redis; key: string; score: float; member: string;
   result = r.readInteger()
 
 proc zadd*(r: var Redis; key: string;
-           members: openArray[(string, float)]; nan = "-inf"): BiggestInt =
+           members: openArray[(string, float)]; nan = "-inf"): LargestInt =
   ## Add members to a sorted set, or update their scores if they already exist.
   ## Provide `nan` as a substitute value for NaN floats.
   ## Returns the number of added members.
@@ -981,12 +996,12 @@ proc zadd*(r: var Redis; key: string;
   r.sendCommand("ZADD", key, values)
   result = r.readInteger()
 
-proc zcard*(r: var Redis, key: string): BiggestInt =
+proc zcard*(r: var Redis, key: string): LargestInt =
   ## Get the number of members in a sorted set
   r.sendCommand("ZCARD", key)
   result = r.readInteger()
 
-proc zcount*(r: var Redis, key, min, max: string): BiggestInt =
+proc zcount*(r: var Redis, key, min, max: string): LargestInt =
   ## Count the members in a sorted set with scores within the given values
   r.sendCommand("ZCOUNT", key, [min, max])
   result = r.readInteger()
@@ -999,7 +1014,7 @@ proc zincrby*(r: var Redis, key: string, increment: float,
 
 proc zinterstore*(r: var Redis, destination: string,
                   keyWeights: openArray[(string, float)],
-                  aggregate = ""): BiggestInt =
+                  aggregate = ""): LargestInt =
   ## Intersect multiple sorted sets and store the resulting sorted set in
   ## a new key
   var args = @[destination, $keyWeights.len]
@@ -1021,7 +1036,7 @@ proc zinterstore*(r: var Redis, destination: string,
 
 proc zinterstore*(r: var Redis, destination: string,
                  keys: openArray[string], weights: openArray[string] = @[],
-                 aggregate = ""): BiggestInt =
+                 aggregate = ""): LargestInt =
   ## Intersect multiple sorted sets and store the resulting sorted set in
   ## a new key
   var args = @[destination, $keys.len]
@@ -1087,7 +1102,7 @@ proc zrangebylex*(r: var Redis, key, start, stop: string,
   r.sendCommand("ZRANGEBYLEX", args)
   result = r.readArray()
 
-proc zrank*(r: var Redis, key, member: string): BiggestInt =
+proc zrank*(r: var Redis, key, member: string): LargestInt =
   ## Determine the index of a member in a sorted set
   r.sendCommand("ZRANK", key, [member])
   try:
@@ -1095,22 +1110,22 @@ proc zrank*(r: var Redis, key, member: string): BiggestInt =
   except ReplyError:
     result = -1
 
-proc zrem*(r: var Redis, key: string, member: string): BiggestInt =
+proc zrem*(r: var Redis, key: string, member: string): LargestInt =
   ## Remove a member from a sorted set
   r.sendCommand("ZREM", key, [member])
   result = r.readInteger()
 
-proc zrem*(r: var Redis, key: string, members: openArray[string]): BiggestInt =
+proc zrem*(r: var Redis, key: string, members: openArray[string]): LargestInt =
   ## Remove members from a sorted set
   r.sendCommand("ZREM", key, members)
   result = r.readInteger()
 
-proc zremrangebyrank*(r: var Redis, key, start, stop: string): BiggestInt =
+proc zremrangebyrank*(r: var Redis, key, start, stop: string): LargestInt =
   ## Remove all members in a sorted set within the given indexes
   r.sendCommand("ZREMRANGEBYRANK", key, [start, stop])
   result = r.readInteger()
 
-proc zremrangebyscore*(r: var Redis, key, min, max: string): BiggestInt =
+proc zremrangebyscore*(r: var Redis, key, min, max: string): LargestInt =
   ## Remove all members in a sorted set within the given scores
   r.sendCommand("ZREMRANGEBYSCORE", key, [min, max])
   result = r.readInteger()
@@ -1172,7 +1187,7 @@ proc zscore*(r: var Redis, key, member: string; missing: float): float =
 
 proc zunionstore*(r: var Redis, destination: string,
                   keyWeights: openArray[(string, float)],
-                  aggregate = ""): BiggestInt =
+                  aggregate = ""): LargestInt =
   ## Add multiple sorted sets and store the resulting sorted set in a new key
   var args = @[destination, $keyWeights.len]
   var weights: seq[string]
@@ -1193,7 +1208,7 @@ proc zunionstore*(r: var Redis, destination: string,
 
 proc zunionstore*(r: var Redis; destination: string;
                   values: openArray[(string, float)];
-                  aggregate = ""; nan = "-inf"): BiggestInt =
+                  aggregate = ""; nan = "-inf"): LargestInt =
   ## Add multiple sorted sets with different weights and store the
   ## resulting sorted set in a new key; specify `nan` for NaN weights.
   var args = @[destination, $values.len]
@@ -1216,7 +1231,7 @@ proc zunionstore*(r: var Redis; destination: string;
   result = r.readInteger()
 
 proc zunionstore*(r: var Redis, destination: string,
-                  keys: openArray[string]; aggregate = ""): BiggestInt =
+                  keys: openArray[string]; aggregate = ""): LargestInt =
   ## Add multiple sorted sets and store the resulting sorted set in a new key
   var args = @[destination, $keys.len]
   args.add(keys)
@@ -1230,17 +1245,17 @@ proc zunionstore*(r: var Redis, destination: string,
 
 # HyperLogLog
 
-proc pfadd*(r: var Redis, key: string, elements: openArray[string]): BiggestInt =
+proc pfadd*(r: var Redis, key: string, elements: openArray[string]): LargestInt =
   ## Add variable number of elements into special 'HyperLogLog' set type
   r.sendCommand("PFADD", key, elements)
   result = r.readInteger()
 
-proc pfcount*(r: var Redis, key: string): BiggestInt =
+proc pfcount*(r: var Redis, key: string): LargestInt =
   ## Count approximate number of elements in 'HyperLogLog'
   r.sendCommand("PFCOUNT", key)
   result = r.readInteger()
 
-proc pfcount*(r: var Redis, keys: openArray[string]): BiggestInt =
+proc pfcount*(r: var Redis, keys: openArray[string]): LargestInt =
   ## Count approximate number of elements in 'HyperLogLog'
   r.sendCommand("PFCOUNT", keys)
   result = r.readInteger()
@@ -1257,7 +1272,7 @@ proc pfmerge*(r: var Redis, destination: string, sources: openArray[string]) =
 #   r.socket.send("PSUBSCRIBE $#\r\n" % pattern)
 #   return ???
 
-proc publish*(r: var Redis, channel: string, message: string): BiggestInt =
+proc publish*(r: var Redis, channel: string, message: string): LargestInt =
   ## Post a message to a channel
   r.sendCommand("PUBLISH", channel, [message])
   result = r.readInteger()
@@ -1382,7 +1397,7 @@ proc configResetStat*(r: var Redis) =
   r.sendCommand("CONFIG", "RESETSTAT")
   raiseUnlessOkay r
 
-proc dbsize*(r: var Redis): BiggestInt =
+proc dbsize*(r: var Redis): LargestInt =
   ## Return the number of keys in the selected database
   r.sendCommand("DBSIZE")
   result = r.readInteger()
@@ -1419,7 +1434,7 @@ proc infoTable*(r: var Redis): Table[string, string] =
     let keyval = line.split(":")
     result[keyval[0]] = keyval[1].strip(chars={'\c'})
 
-proc lastsave*(r: var Redis): BiggestInt =
+proc lastsave*(r: var Redis): LargestInt =
   ## Get the UNIX time stamp of the last successful save to disk
   r.sendCommand("LASTSAVE")
   result = r.readInteger()
